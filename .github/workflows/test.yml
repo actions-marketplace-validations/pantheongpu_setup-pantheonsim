@@ -1,0 +1,61 @@
+name: Test
+
+# This action, used the way a project would use it, on the runners it supports.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }}, ${{ matrix.gpu }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-22.04]
+        gpu: [nvidia/t4, amd/mi300x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          gpu: ${{ matrix.gpu }}
+          count: 2
+      - name: Compile and run on the simulated GPUs, directly
+        run: |
+          if [[ "${{ matrix.gpu }}" == amd/* ]]; then
+            cat > t.hip <<'SRC'
+          #include <hip/hip_runtime.h>
+          #include <cstdio>
+          __global__ void k(int* p) { p[threadIdx.x] = threadIdx.x; }
+          int main() {
+            int n = 0; if (hipGetDeviceCount(&n) || n != 2) return 3;
+            int* d; if (hipMalloc(&d, 256)) return 2;
+            k<<<1, 64>>>(d); if (hipDeviceSynchronize()) return 2;
+            int h[64]; hipMemcpy(h, d, sizeof h, hipMemcpyDeviceToHost);
+            for (int i = 0; i < 64; ++i) if (h[i] != i) return 1;
+            std::puts("ok"); return 0;
+          }
+          SRC
+            hipcc t.hip -o t
+          else
+            cat > t.cu <<'SRC'
+          #include <cstdio>
+          __global__ void k(int* p) { p[threadIdx.x] = threadIdx.x; }
+          int main() {
+            int n = 0; if (cudaGetDeviceCount(&n) || n != 2) return 3;
+            int* d; if (cudaMalloc(&d, 256)) return 2;
+            k<<<1, 64>>>(d); if (cudaDeviceSynchronize()) return 2;
+            int h[64]; cudaMemcpy(h, d, sizeof h, cudaMemcpyDeviceToHost);
+            for (int i = 0; i < 64; ++i) if (h[i] != i) return 1;
+            std::puts("ok"); return 0;
+          }
+          SRC
+            nvcc -arch=compute_75 t.cu -o t
+          fi
+          ./t

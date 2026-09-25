@@ -1,0 +1,56 @@
+name: PantheonSim
+description: Run CUDA and HIP tests on simulated NVIDIA and AMD GPUs, on GitHub's standard runners, with no GPU.
+author: PantheonGPU
+branding:
+  icon: cpu
+  color: green
+
+# Each release of this action pins a simulator commit that was tested with it,
+# so a workflow on @v0 gets a simulator that release was checked against, and
+# nothing changes under it until the next release. The logic lives in the
+# simulator's own repository; this file passes the inputs through.
+inputs:
+  gpu:
+    description: The GPU to simulate (`vgpu list-gpus`), e.g. nvidia/h100, nvidia/t4 or amd/mi300x.
+    default: nvidia/t4
+  count:
+    description: How many of them.
+    default: '1'
+  cuda-toolkit:
+    description: >
+      For an NVIDIA GPU: `apt` installs Ubuntu's toolkit (CUDA 12.0 on
+      ubuntu-24.04); a version such as `12.6` or `13.0` installs that nvcc from
+      NVIDIA; `none` uses a toolkit the job already installed. Left empty: `apt`
+      on ubuntu-24.04, `12.6` on ubuntu-22.04, `none` for an AMD GPU.
+    default: ''
+  rocm:
+    description: >
+      For an AMD GPU: the ROCm version whose hipcc to install, e.g. `7.1`, or
+      `none` to use a ROCm the job already installed. Left empty: `7.1` for an
+      AMD GPU, `none` for an NVIDIA one.
+    default: ''
+  library-path:
+    description: >
+      `true` puts the simulator's libraries on LD_LIBRARY_PATH so programs run
+      directly (ctest, scripts) as well as under `vgpu run`.
+    default: 'true'
+
+outputs:
+  build-dir:
+    description: Where the simulator was built.
+    value: ${{ steps.sim.outputs.build-dir }}
+  shim-dir:
+    description: The simulator's CUDA and HIP libraries.
+    value: ${{ steps.sim.outputs.shim-dir }}
+
+runs:
+  using: composite
+  steps:
+    - id: sim
+      uses: pantheongpu/pantheonsim@7036de82d510543150b3ba02d3d2165cd162eb09
+      with:
+        gpu: ${{ inputs.gpu }}
+        count: ${{ inputs.count }}
+        cuda-toolkit: ${{ inputs.cuda-toolkit }}
+        rocm: ${{ inputs.rocm }}
+        library-path: ${{ inputs.library-path }}
