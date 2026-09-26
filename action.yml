@@ -47,7 +47,7 @@ runs:
   using: composite
   steps:
     - id: sim
-      uses: pantheongpu/pantheonsim@b0ff03c28fb389f1bc18a5650155b86866c53a53
+      uses: pantheongpu/pantheonsim@04dde056269746bfc1ba2d5624e802a8e35e5f35
       with:
         gpu: ${{ inputs.gpu }}
         count: ${{ inputs.count }}
