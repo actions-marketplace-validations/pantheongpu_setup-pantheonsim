@@ -74,8 +74,9 @@ support works, and `ctest` runs the programs directly:
   run on physical GPUs before a release.
 - **Check return codes in your tests.** An unsupported call returns its CUDA or
   HIP error and prints why, so a test that ignores the code can still pass.
-- **PyTorch doesn't run on it today.** Its bundled CUDA runtime refuses a
-  simulated driver. Numba works.
+- **PyTorch: the ROCm build runs, the CUDA build doesn't.** PyTorch for ROCm
+  loads on a simulated MI300X and runs common ops through its libraries;
+  PyTorch for CUDA's bundled runtime refuses a simulated driver. Numba works.
 - **Linux runners only.** Container jobs work too. The first run builds the
   simulator; later runs restore it from the cache.
 
