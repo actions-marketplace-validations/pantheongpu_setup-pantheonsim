@@ -1,5 +1,9 @@
 # PantheonSim for GitHub Actions
 
+[![Test](https://github.com/pantheongpu/setup-pantheonsim/actions/workflows/test.yml/badge.svg)](https://github.com/pantheongpu/setup-pantheonsim/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/pantheongpu/setup-pantheonsim)](https://github.com/pantheongpu/setup-pantheonsim/releases)
+[![License](https://img.shields.io/github/license/pantheongpu/setup-pantheonsim)](LICENSE)
+
 GitHub's hosted runners have no GPU, so GPU code usually goes untested until
 someone has a card free. This action gives a job simulated NVIDIA or AMD GPUs,
 so CUDA and HIP code compiles and its tests run on every push and pull request,
@@ -9,6 +13,8 @@ The GPUs are simulated by [PantheonSim](https://pantheonsim.com), an open-source
 GPU simulator that runs unmodified programs on the CPU.
 `nvidia-smi` and `rocm-smi` report the GPUs you asked for. Your compiler is the
 real one. Your test suite runs as it is.
+
+**What it is:** a setup step that installs a GPU simulator and a compiler on a standard Linux runner, so CUDA and HIP tests run without a GPU. **What it isn't:** a way to measure performance, and not a replacement for a run on a physical GPU before a release (see [Things to know](#things-to-know)).
 
 ## CUDA
 
